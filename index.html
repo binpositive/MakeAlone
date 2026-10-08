@@ -2,75 +2,600 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>KING 해커톤 · 배포 확인</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#151a1e">
+  <meta name="description" content="빈자리를 잡고, 체력을 지키고, 자리를 양보하며 세 역을 버티는 지하철 게임. 방향키로 한 칸씩 이동하세요.">
+  <title>민첩한 하루 되세요 · 지하철 생존 게임</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23151a1e'/%3E%3Cpath d='M6 9h20M6 23h20' stroke='%23aebbc5' stroke-width='4'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%2352ed92'/%3E%3C/svg%3E">
   <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #eef1eb; color: #17241c; font-family: system-ui, "Malgun Gothic", sans-serif; }
-    main { width: min(100%, 720px); padding: clamp(24px, 5vw, 48px); border: 1px solid #00462a; border-radius: 8px; background: white; }
-    .label { margin: 0 0 24px; color: #00462a; font-size: 14px; font-weight: 700; }
-    h1 { margin: 0 0 16px; font-size: clamp(28px, 6vw, 42px); }
-    p { line-height: 1.7; }
-    #stage { display: grid; place-items: center; min-height: 180px; margin: 28px 0 20px; padding: 24px; background: #f3f5f1; border: 1px solid #d8ded7; text-align: center; }
-    #message { margin: 0; }
-    .buttons { display: flex; flex-wrap: wrap; gap: 12px; }
-    button { padding: 12px 20px; border: 1px solid #00462a; border-radius: 4px; background: #00462a; color: white; font: inherit; cursor: pointer; }
-    #restart { background: white; color: #00462a; }
-    button:disabled { opacity: .4; cursor: default; }
-    button:focus-visible { outline: 3px solid #69a58c; outline-offset: 4px; }
-    .guide { margin-top: 28px; padding: 24px; border: 1px solid #d8ded7; background: #f8faf6; }
-    .guide h2 { margin: 0 0 12px; font-size: 22px; }
-    .guide li { margin: 10px 0; line-height: 1.7; }
-    .sheet-link { display: inline-block; margin-top: 8px; padding: 12px 18px; background: #00462a; color: white; border-radius: 4px; text-decoration: none; }
-    .sheet-link:focus-visible { outline: 3px solid #69a58c; outline-offset: 4px; }
-    .note { margin-top: 28px; padding-top: 20px; border-top: 1px solid #d8ded7; color: #68746b; font-size: 14px; }
+    :root { color-scheme: light; --ink:#151a1e; --lime:#66f09b; --green:#10b85e; --yellow:#ffce45; --red:#f34c4c; --muted:#66727b; --paper:#f3f5f6; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family:system-ui,-apple-system,"Segoe UI","Noto Sans KR","Malgun Gothic",sans-serif; font-size:16px; }
+    button { font:inherit; cursor:pointer; touch-action:manipulation; }
+    button:disabled { cursor:default; opacity:.45; }
+    button:focus-visible, summary:focus-visible { outline:3px solid var(--green); outline-offset:4px; }
+    button svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    [hidden] { display:none !important; }
+    .page { max-width:1040px; margin:0 auto; padding:30px 28px 24px; }
+    .heading { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:24px; }
+    .identity { display:flex; align-items:center; gap:14px; }
+    .line-number { width:46px; height:46px; border:2px solid var(--ink); border-radius:50%; background:var(--lime); display:grid; place-items:center; font-size:20px; font-weight:900; flex-shrink:0; }
+    .eyebrow { margin:0 0 4px; color:var(--muted); font-size:12px; letter-spacing:.12em; font-weight:700; }
+    h1 { margin:0; font-size:clamp(22px,3.5vw,30px); font-weight:850; letter-spacing:-.055em; }
+    .top-actions { display:flex; gap:8px; }
+    .icon-button { display:flex; align-items:center; justify-content:center; gap:7px; border:1px solid #d4dbe0; border-radius:10px; padding:10px 12px; background:white; color:var(--ink); font-size:14px; font-weight:650; }
+    .game { background:var(--ink); color:white; border-radius:22px; padding:24px 26px 22px; box-shadow:0 14px 40px #162a3510; }
+    .trip-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .round-line { display:flex; align-items:baseline; gap:10px; }
+    .round-line strong { font-size:26px; font-variant-numeric:tabular-nums; letter-spacing:-.04em; }
+    .round-line span { font-size:14px; color:#a8b5be; }
+    .crowd-badge { border:1px solid #39434a; border-radius:7px; padding:6px 11px; color:#d8e4ec; font-size:14px; white-space:nowrap; }
+    .crowd-badge.packed { border-color:#6c4f35; color:#ffd8a4; }
+    .route { display:grid; grid-template-columns:repeat(4,1fr); position:relative; margin:21px 4px 24px; }
+    .route::before,.route-fill { content:""; position:absolute; top:7px; left:12.5%; height:3px; width:75%; background:#39444c; }
+    .route-fill { background:var(--lime); width:0; z-index:1; }
+    .station { text-align:center; position:relative; z-index:2; color:#909fa9; font-size:12px; }
+    .station-marker { display:block; height:16px; width:16px; margin:0 auto 8px; border:3px solid #48545e; background:var(--ink); border-radius:50%; }
+    .station.reached { color:#dce9e0; }
+    .station.reached .station-marker { border-color:var(--lime); background:var(--lime); }
+    .station.current { color:var(--lime); }
+    .station.current .station-marker { border-color:var(--lime); }
+    .dashboard { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:30px; padding:0 2px 22px; }
+    .health-label { display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:9px; font-size:14px; }
+    .health-label strong { color:var(--lime); font-size:22px; font-variant-numeric:tabular-nums; }
+    .health-label small { color:#8d9ea7; font-size:12px; }
+    .health-track { height:9px; border-radius:3px; background:#344048; overflow:hidden; }
+    .health-fill { height:100%; width:100%; background:var(--lime); transition:width .12s linear,background .2s; }
+    .health-state { color:#b4c1c8; font-size:12px; min-height:18px; margin-top:7px; }
+    .health-state.recovering { color:var(--lime); }
+    .health-state.waiting { color:var(--yellow); }
+    .metric { min-width:84px; }
+    .metric .label { display:block; font-size:12px; color:#95a5af; margin-bottom:5px; }
+    .metric strong { font-size:26px; letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
+    .metric small { font-size:12px; color:#95a5af; margin-left:3px; }
+    .car-caption { display:flex; justify-content:space-between; margin-bottom:9px; font-size:12px; color:#acbac3; }
+    .board-wrap { position:relative; border:5px solid #63727c; border-radius:14px; overflow:hidden; background:#e9eff2; }
+    .board { position:relative; aspect-ratio:2/1; overflow:hidden; }
+    .grid { position:absolute; inset:0; display:grid; grid-template-columns:repeat(10,1fr); grid-template-rows:repeat(5,1fr); }
+    .cell { position:relative; border-right:1px solid #d4dde3; border-bottom:1px solid #d4dde3; background:#edf1f4; }
+    .cell:nth-child(10n) { border-right:0; }
+    .cell:nth-child(n+41) { border-bottom:0; }
+    .cell.aisle { background:#f8fafb; }
+    .cell.seat { background:#dbe6f0; }
+    .cell.seat::before { content:""; position:absolute; inset:13% 11%; border:2px solid #a5b9cb; border-radius:7px; background:#c9d8e7; }
+    .cell.seat.empty::before { background:#eaf8ee; border:2px solid #6ba585; }
+    .cell.seat.empty::after { content:"빈자리"; position:absolute; inset:0; display:grid; place-items:center; color:#35734e; font-size:12px; font-weight:700; }
+    .cell.seat.claiming::before { border-color:#d49a24; }
+    .cell.seat.new-seat::before { animation:seat-pulse .4s ease-out 3; }
+    .claim-track { position:absolute; left:24%; right:24%; bottom:16%; height:3px; background:#d6e2df; border-radius:2px; overflow:hidden; }
+    .claim-fill { height:100%; background:#d5a33b; }
+    .entities { position:absolute; inset:0; pointer-events:none; }
+    .entity { width:10%; height:20%; position:absolute; display:flex; justify-content:center; align-items:center; transition:left .12s ease-out,top .12s ease-out; }
+    .node { width:34%; aspect-ratio:1; border-radius:50%; background:#232a31; min-width:12px; max-width:29px; border:2px solid #fafcfd; box-shadow:0 2px 2px #1d30301a; }
+    .entity.elder .node { background:var(--yellow); border-color:#fff8d9; }
+    .entity.player { z-index:3; }
+    .entity.player .node { background:var(--green); box-shadow:0 0 0 4px #10b85e26; width:38%; max-width:32px; }
+    .entity.player.hit .node { background:var(--red); box-shadow:0 0 0 5px #f34c4c30; }
+    .you-label { position:absolute; top:70%; left:0; right:0; text-align:center; color:#06753b; font-size:12px; font-weight:850; line-height:1; }
+    .elder-bubble { position:absolute; bottom:78%; left:50%; transform:translateX(-50%); min-width:94px; padding:6px 8px; background:#fff5bd; border:1px solid #c7a849; border-radius:8px; box-shadow:0 3px 12px #151a1e20; z-index:5; color:#4c3d08; text-align:center; }
+    .elder-bubble strong { display:block; font-size:12px; white-space:nowrap; }
+    .elder-track { height:5px; background:#e7d69a; margin-top:5px; border-radius:2px; overflow:hidden; }
+    .elder-fill { height:100%; background:#cd8b0b; }
+    .shout { position:absolute; bottom:70%; left:50%; transform:translateX(-50%) rotate(-8deg); font-size:30px; font-weight:950; color:#402d00; background:var(--yellow); padding:4px 12px; border:2px solid #6f5100; border-radius:12px; animation:shout .18s ease-out; z-index:8; white-space:nowrap; }
+    .arrivals { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+    .arrival-dot { position:absolute; width:18px; height:18px; border-radius:50%; background:#232a31; opacity:0; animation:arrival .6s ease-out forwards; }
+    .arrival-dot.elder { background:var(--yellow); }
+    .overlay { position:absolute; inset:0; background:#edf2f5d9; backdrop-filter:blur(2px); display:flex; justify-content:center; align-items:center; padding:18px; z-index:20; }
+    .overlay-card { width:min(100%,370px); text-align:center; }
+    .overlay-kicker { display:inline-block; margin:0 0 10px; color:#177647; font-size:12px; letter-spacing:.07em; font-weight:850; }
+    .overlay h2 { margin:0 0 10px; color:var(--ink); font-size:clamp(21px,3vw,30px); letter-spacing:-.045em; }
+    .overlay p { margin:0 auto 20px; font-size:16px; line-height:1.65; color:#50616c; max-width:330px; }
+    .primary { border:0; color:var(--ink); background:var(--lime); border-radius:10px; padding:13px 25px; font-weight:850; box-shadow:0 3px 0 #37ba6b; }
+    .primary:active { transform:translateY(2px); box-shadow:0 1px 0 #37ba6b; }
+    .result-stats { color:#46545f; font-size:14px; margin:0 0 18px; }
+    .overlay.transfer h2 { font-size:32px; }
+    .overlay.transfer { background:#edf2f5ec; }
+    .message-line { display:flex; align-items:center; justify-content:space-between; min-height:48px; gap:12px; padding-top:14px; }
+    .message { margin:0; font-size:14px; color:#cbd7de; line-height:1.5; }
+    .message.elder,.message.shout { position:static; transform:none; background:none; border:0; padding:0; font-size:14px; animation:none; white-space:normal; color:var(--yellow); }
+    .message.damage { color:#ff9999; }
+    .phase-label { font-size:12px; color:#92a1ab; white-space:nowrap; }
+    .under-board { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:18px; margin:19px 2px 0; }
+    .legend { display:flex; gap:17px; font-size:14px; color:#53616b; flex-wrap:wrap; }
+    .legend span { display:flex; align-items:center; gap:7px; }
+    .legend-dot { width:11px; height:11px; border-radius:50%; background:#232a31; display:inline-block; }
+    .legend-dot.player { background:var(--green); }.legend-dot.elder { background:var(--yellow); border:1px solid #d4a923; }
+    .keys { display:flex; align-items:center; gap:7px; color:#66727b; font-size:14px; }
+    kbd { display:inline-flex; justify-content:center; align-items:center; width:23px; height:24px; background:white; border:1px solid #d5dde2; border-bottom-width:2px; border-radius:4px; color:#52616d; font-family:inherit; font-size:14px; }
+    .bottom { display:flex; gap:24px; justify-content:space-between; align-items:flex-start; margin-top:20px; }
+    .rules { flex:1; }
+    summary { cursor:pointer; color:#52616d; font-size:14px; width:fit-content; }
+    .rule-content { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; margin-top:14px; }
+    .rule-content p { color:#5a6973; font-size:14px; line-height:1.7; margin:0; }
+    .rule-content strong { display:block; color:#293840; font-size:14px; margin-bottom:3px; }
+    .dpad { display:grid; grid-template-columns:repeat(3,36px); grid-template-rows:repeat(2,34px); gap:4px; flex-shrink:0; }
+    .dpad button { display:grid; place-items:center; background:white; border:1px solid #d3dce2; border-bottom-width:3px; border-radius:6px; color:#53616b; padding:0; }
+    .dpad button:active { border-bottom-width:1px; background:#d7f7e3; }
+    .dpad .up { grid-column:2; }.dpad .left { grid-column:1; grid-row:2; }.dpad .down { grid-column:2; grid-row:2; }.dpad .right { grid-column:3; grid-row:2; }
+    @keyframes seat-pulse { 50% { background:#a7edbf; box-shadow:0 0 0 3px #0eba6238; } }
+    @keyframes arrival { from { opacity:.9; transform:translate(0,0); } to { opacity:0; transform:translate(var(--dx),var(--dy)); } }
+    @keyframes shout { from { transform:translateX(-50%) rotate(-8deg) scale(.45); } to { transform:translateX(-50%) rotate(-8deg) scale(1); } }
+    @media(max-width:660px) {
+      .page { padding:20px 14px; }.heading { gap:10px; margin-bottom:18px; }.identity { gap:9px; }.line-number { width:35px; height:35px; font-size:16px; }.eyebrow { font-size:10px; }h1 { font-size:22px; }
+      .icon-button { padding:9px; }.icon-button span { display:none; }.top-actions { gap:5px; }.game { padding:18px 13px 14px; border-radius:16px; }
+      .dashboard { gap:14px; padding-bottom:16px; }.metric { min-width:48px; }.metric strong { font-size:21px; }.metric small { margin-left:1px; }.health-label strong { font-size:20px; }
+      .round-line strong { font-size:23px; }.round-line span { font-size:12px; }.crowd-badge { font-size:12px; padding:5px 8px; }.route { margin:18px 0; }
+      .board-wrap { border-width:3px; border-radius:9px; }.board { aspect-ratio:1.65/1; min-height:210px; }.cell.seat::before { border-width:1px; border-radius:4px; }.cell.seat.empty::before { border-width:1px; }.cell.seat.empty::after { font-size:10px; }.you-label { font-size:10px; }.node { border-width:1px; }.entity.player .node { box-shadow:0 0 0 2px #10b85e26; }
+      .overlay { padding:12px; }.overlay-kicker { margin-bottom:5px; font-size:10px; }.overlay h2 { margin-bottom:5px; font-size:21px; }.overlay p { font-size:14px; margin-bottom:12px; line-height:1.55; }.primary { padding:10px 20px; font-size:14px; }.result-stats { font-size:12px; margin-bottom:10px; }
+      .message-line { min-height:53px; padding-top:10px; }.message { font-size:12px; }.phase-label { font-size:10px; }.elder-bubble { min-width:82px; padding:5px 6px; }.elder-bubble strong { font-size:11px; }.shout { font-size:23px; }
+      .under-board { gap:12px; margin-top:15px; }.legend { gap:12px; font-size:12px; }.keys { font-size:12px; }.rule-content { grid-template-columns:1fr; gap:12px; }.bottom { gap:16px; }.dpad { grid-template-columns:repeat(3,39px); grid-template-rows:repeat(2,37px); }
+    }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition:none !important; } }
   </style>
 </head>
 <body>
-  <main>
-    <p class="label">KING · 바이브코딩 해커톤</p>
-    <!-- 사전 수정 연습: 아래 제목을 원하는 문구로 바꿔 보세요. -->
-    <h1>해커톤 준비 완료</h1>
-    <p>이 화면이 GitHub Pages 공개 주소에서 보이면 배포에 성공한 것입니다.<br>시작 버튼을 눌러 기본 동작도 확인해 주세요.</p>
-    <section id="stage" aria-label="실행 확인 화면" aria-live="polite">
-      <p id="message">시작 버튼을 눌러 주세요.</p>
+  <main class="page">
+    <header class="heading">
+      <div class="identity"><span class="line-number" aria-hidden="true">03</span><div><p class="eyebrow">지하철 생존 게임</p><h1>민첩한 하루 되세요</h1></div></div>
+      <div class="top-actions">
+        <button class="icon-button" id="pause" type="button" aria-label="일시정지" title="일시정지 · Esc" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg><span>일시정지</span></button>
+        <button class="icon-button" id="restart" type="button" aria-label="다시 시작" title="다시 시작"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7"/></svg><span>다시 시작</span></button>
+      </div>
+    </header>
+    <section class="game" aria-label="지하철 게임">
+      <div class="trip-heading"><div class="round-line"><strong id="round">01 / 03</strong><span id="round-caption">첫 번째 역까지</span></div><span class="crowd-badge" id="crowd">운행 대기</span></div>
+      <div class="route" aria-label="출발부터 목적지까지 세 역"><div class="route-fill" id="route-fill"></div><div class="station reached"><span class="station-marker"></span>출발</div><div class="station current"><span class="station-marker"></span>1역</div><div class="station"><span class="station-marker"></span>2역</div><div class="station"><span class="station-marker"></span>목적지</div></div>
+      <div class="dashboard">
+        <div><div class="health-label"><span>체력</span><div><strong id="hp">100</strong><small> / 100</small></div></div><div class="health-track" id="health-track" role="progressbar" aria-label="남은 체력" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div class="health-fill" id="health-fill"></div></div><div class="health-state" id="health-state">앉아서 체력을 회복하세요</div></div>
+        <div class="metric"><span class="label">도착까지</span><strong id="seconds">30</strong><small>초</small></div>
+        <div class="metric"><span class="label">탑승 인원</span><strong id="people">—</strong><small> / 40</small></div>
+      </div>
+      <div class="car-caption"><span>좌석 20 · 입석 20 · 통로 10</span><span id="seat-count">빈자리 —</span></div>
+      <div class="board-wrap">
+        <div class="board" id="board" role="img" aria-label="위에서 본 10열 5행 지하철 칸. 초록색은 나, 검정색은 승객, 노란색은 노약자입니다.">
+          <div class="grid" id="grid" aria-hidden="true"></div><div class="entities" id="entities"></div><div class="arrivals" id="arrivals" aria-hidden="true"></div>
+        </div>
+        <div class="overlay" id="overlay"><div class="overlay-card"><span class="overlay-kicker" id="overlay-kicker">세 역, 하나의 목표</span><h2 id="overlay-title">체력을 지켜서 도착하기</h2><p id="overlay-text">빈자리는 기다려주지 않아요.<br>방향키로 움직이고, 앉아서 회복하세요.</p><div class="result-stats" id="result-stats" hidden></div><button class="primary" id="start" type="button">지하철 타기</button></div></div>
+      </div>
+      <div class="message-line"><p class="message" id="message" role="status" aria-live="polite">내가 먼저 탑승! 승객이 들어오기 전 1초를 활용하세요.</p><span class="phase-label" id="phase-label">READY</span></div>
     </section>
-    <div class="buttons">
-      <button id="start" type="button">시작</button>
-      <button id="restart" type="button" disabled>다시 시작</button>
+    <div class="under-board"><div class="legend"><span><i class="legend-dot player" aria-hidden="true"></i>나</span><span><i class="legend-dot" aria-hidden="true"></i>승객</span><span><i class="legend-dot elder" aria-hidden="true"></i>노약자</span></div><div class="keys"><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd><span>한 칸 이동 · Esc 일시정지</span></div></div>
+    <div class="bottom">
+      <details class="rules"><summary>플레이 방법</summary><div class="rule-content"><p><strong>빈자리를 선점하세요</strong>서 있으면 체력 −2.1/초, 앉으면 +3.8/초. 승객과 부딪히면 −8, 서로 위치가 바뀝니다. 키를 한 번 누를 때마다 한 칸 이동해요.</p><p><strong>노약자에게 자리를 양보하세요</strong>노란 승객이 앞에 오면 회복이 멈춰요. 앞칸 방향키로 양보하거나, 3초 후 “갈!”과 함께 강제로 자리가 바뀝니다. 양보에는 체력 피해가 없어요.</p><p><strong>세 역을 버티면 성공</strong>라운드당 30초. 한산·혼잡·거의 만원을 한 번씩 지나가요. 빈자리가 생기거나 승객들이 자리를 바꿀 수 있어요. 도착하면 다음 라운드로 넘어갑니다.</p></div></details>
+      <div class="dpad" role="group" aria-label="방향 이동 버튼"><button class="up" data-direction="up" type="button" aria-label="위로 한 칸"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button><button class="left" data-direction="left" type="button" aria-label="왼쪽으로 한 칸"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button><button class="down" data-direction="down" type="button" aria-label="아래로 한 칸"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><button class="right" data-direction="right" type="button" aria-label="오른쪽으로 한 칸"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></div>
     </div>
-    <section class="guide" aria-labelledby="guide-title">
-      <h2 id="guide-title">참가자 정보 사전 입력</h2>
-      <p>정기 모임 전에 GitHub와 Skeam 계정을 만들고, 아래 스프레드시트에 본인 정보를 미리 기재해 주세요.</p>
-      <ol>
-        <li><strong>GitHub 계정:</strong> 계정을 생성하고 이메일 인증을 완료합니다. 공개 저장소를 만들고 이 파일을 GitHub Pages에 배포해 봅니다.</li>
-        <li><strong>Skeam 계정:</strong> 계정을 생성하고 행사에 사용할 기기에서 로그인을 확인합니다.</li>
-        <li><strong>스프레드시트:</strong> 빈 행 하나에 이름, Skeam 닉네임, 참여 여부, 사용할 AI·제작 도구를 입력합니다. 이미 본인 행이 있다면 해당 행을 수정합니다.</li>
-        <li><strong>행사 후 입력:</strong> 작품명과 Skeam 링크를 입력합니다. 아직 만들지 않은 작품 정보와 링크는 비워 두어도 됩니다.</li>
-      </ol>
-      <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1eLqrOtpMhR3VfCOIV-9_RNtlB1wUtHm_m6aK4ziDUH8/edit?usp=sharing" target="_blank" rel="noopener noreferrer">참가자 정보 입력 시트 열기 ↗</a>
-      <p style="font-size:14px;color:#68746b">다른 참가자의 행은 수정하지 마세요. 비밀번호·API 키는 기재하지 않습니다. 사전 준비·출석·제출 상태·실행 확인은 운영진이 관리합니다.</p>
-    </section>
-    <p class="note">이 파일은 배포 연습용 기본 틀입니다. 실제 게임 규칙과 조작은 당일 추가하세요.<br>사전 연습: 제목을 수정해 다시 올린 뒤 공개 페이지에도 반영되는지 확인합니다.</p>
   </main>
-  <script>
-    // 외부 라이브러리 없이 이 파일 하나로 실행됩니다.
-    const message = document.getElementById('message');
-    const start = document.getElementById('start');
-    const restart = document.getElementById('restart');
-    start.addEventListener('click', () => {
-      message.textContent = '시작 버튼이 정상적으로 작동합니다. 다시 시작 버튼도 확인해 주세요.';
-      start.disabled = true;
-      restart.disabled = false;
-      restart.focus();
-    });
-    restart.addEventListener('click', () => {
-      message.textContent = '시작 버튼을 눌러 주세요.';
-      start.disabled = false;
-      restart.disabled = true;
-      start.focus();
-    });
+  <script id="game-core">
+class SubwayGame {
+  static RULES = Object.freeze({ cols: 10, rows: 5, rounds: 3, roundSeconds: 30, headStart: 1, arrivalSeconds: .6, standingDrain: 2.1, seatedRecovery: 3.8, collisionDamage: 8, elderWait: 3, transferSeconds: 1.8 });
+  static CROWDS = Object.freeze([
+    { id: 'quiet', label: '한산', min: 15, max: 20, seats: [9, 12], elders: [1, 3] },
+    { id: 'busy', label: '혼잡', min: 27, max: 32, seats: [14, 16], elders: [2, 4] },
+    { id: 'packed', label: '거의 만원', min: 37, max: 40, seats: [17, 19], elders: [3, 5] }
+  ]);
+  constructor(random = Math.random) { this.random = random; this.reset(); }
+  reset() {
+    this.phase = 'ready'; this.paused = false; this.hp = 100; this.roundIndex = 0;
+    this.elapsed = 0; this.clock = 0; this.transferLeft = 0; this.plan = [];
+    this.player = { x: 4, y: 2 }; this.npcs = []; this.nextId = 1; this.claims = new Map();
+    this.request = null; this.flashUntil = 0; this.shout = null; this.lastEvent = '';
+    this.stats = { collisions: 0, yields: 0, forcedYields: 0, seatedSeconds: 0, recovered: 0 };
+    this.events = []; this.seatTrail = [];
+  }
+  int(min, max) { return min + Math.floor(this.random() * (max - min + 1)); }
+  between(min, max) { return min + this.random() * (max - min); }
+  pick(items) { return items.length ? items[this.int(0, items.length - 1)] : null; }
+  shuffle(items) {
+    const copy = [...items];
+    for (let i = copy.length - 1; i > 0; i--) { const j = this.int(0, i); [copy[i], copy[j]] = [copy[j], copy[i]]; }
+    return copy;
+  }
+  isSeat(y) { return y === 0 || y === 4; }
+  same(a, b) { return a.x === b.x && a.y === b.y; }
+  occupied(x, y) { return this.npcs.find(n => n.x === x && n.y === y); }
+  cellFree(x, y) { return !this.occupied(x, y) && !(this.player.x === x && this.player.y === y); }
+  seatCells() { return [0, 4].flatMap(y => Array.from({ length: 10 }, (_, x) => ({ x, y }))); }
+  frontCells() { return [1, 3].flatMap(y => Array.from({ length: 10 }, (_, x) => ({ x, y }))); }
+  announce(text, kind = 'info') {
+    this.lastEvent = text; this.events.push({ text, kind, at: this.clock });
+    if (this.events.length > 5) this.events.shift();
+  }
+  start() {
+    this.reset(); this.plan = this.shuffle(SubwayGame.CROWDS); this.beginRound(0);
+  }
+  beginRound(index) {
+    this.roundIndex = index; this.elapsed = 0; this.phase = 'boarding'; this.transferLeft = 0;
+    this.player = { x: this.int(0, 9), y: 2 }; this.npcs = []; this.claims.clear(); this.request = null;
+    this.flashUntil = 0; this.shout = null; this.seatTrail = [];
+    const crowd = this.plan[index]; this.targetCount = this.int(crowd.min, crowd.max);
+    this.elderTarget = this.int(...crowd.elders);
+    const seats = this.shuffle(this.seatCells());
+    const seatedCount = this.int(...crowd.seats);
+    const seatedElders = Math.min(this.elderTarget - 1, this.int(0, 1));
+    for (let i = 0; i < seatedCount; i++) this.npcs.push({ id: this.nextId++, ...seats[i], elder: i < seatedElders });
+    this.nextVacancy = this.between(4, 6); this.nextSwap = this.between(3, 5); this.nextElder = this.between(6, 9);
+    this.announce(`${index + 1}라운드 · ${crowd.label}. 1초 먼저, 빈자리를 잡으세요!`, 'round');
+  }
+  settlePassengers() {
+    const remaining = this.targetCount - 1 - this.npcs.length;
+    const fronts = this.shuffle(this.frontCells().filter(p => this.cellFree(p.x, p.y)));
+    const seats = this.shuffle(this.seatCells().filter(p => this.cellFree(p.x, p.y)));
+    const available = [...fronts, ...seats];
+    let eldersLeft = Math.max(0, this.elderTarget - this.npcs.filter(n => n.elder).length);
+    for (let i = 0; i < remaining && i < available.length; i++) {
+      this.npcs.push({ id: this.nextId++, ...available[i], elder: eldersLeft-- > 0 });
+    }
+    this.phase = 'riding'; this.announce(`${this.plan[this.roundIndex].label} 열차 출발! 앉으면 체력이 회복됩니다.`);
+    this.syncRequest();
+  }
+  clearRequestIfInvalid() {
+    if (!this.request) return;
+    const r = this.request, n = this.npcs.find(npc => npc.id === r.npcId);
+    if (!n || this.player.x !== r.x || this.player.y !== r.seatY || n.x !== r.x || n.y !== r.frontY) this.request = null;
+  }
+  syncRequest() {
+    this.clearRequestIfInvalid();
+    if (this.request || this.phase !== 'riding' || !this.isSeat(this.player.y)) return;
+    const frontY = this.player.y === 0 ? 1 : 3;
+    const n = this.occupied(this.player.x, frontY);
+    if (n?.elder) {
+      this.request = { npcId: n.id, x: this.player.x, seatY: this.player.y, frontY, startedAt: this.elapsed, deadline: this.elapsed + SubwayGame.RULES.elderWait };
+      this.announce('자리 양보하기! 앞칸 방향키를 누르세요. 회복이 멈췄습니다.', 'elder');
+    }
+  }
+  yieldSeat(forced = false) {
+    this.clearRequestIfInvalid(); if (!this.request) return false;
+    const r = this.request, n = this.npcs.find(npc => npc.id === r.npcId);
+    this.player = { x: r.x, y: r.frontY }; n.x = r.x; n.y = r.seatY; this.request = null;
+    if (forced) {
+      this.stats.forcedYields++;
+      this.shout = { x: r.x, y: r.seatY, until: this.clock + 1.1 };
+      this.announce('갈! 노약자가 자리를 바꿨습니다. 체력 피해는 없어요.', 'shout');
+    } else {
+      this.stats.yields++;
+      this.announce('자리를 양보했습니다. 새로운 빈자리를 찾아보세요.', 'yield');
+    }
+    this.nextElder = Math.max(this.nextElder, this.elapsed + this.between(5, 8));
+    return true;
+  }
+  move(dx, dy) {
+    if (!Number.isInteger(dx) || !Number.isInteger(dy) || Math.abs(dx) + Math.abs(dy) !== 1) return false;
+    if (this.paused || !['boarding', 'riding'].includes(this.phase)) return false;
+    const x = this.player.x + dx, y = this.player.y + dy;
+    if (x < 0 || x >= 10 || y < 0 || y >= 5) return false;
+    this.syncRequest();
+    if (this.request && x === this.request.x && y === this.request.frontY) return this.yieldSeat(false);
+    const occupant = this.occupied(x, y), old = { ...this.player };
+    if (occupant) {
+      occupant.x = old.x; occupant.y = old.y;
+      if (this.phase === 'riding') {
+        this.hp = Math.max(0, this.hp - SubwayGame.RULES.collisionDamage);
+        this.stats.collisions++; this.flashUntil = this.clock + .3;
+        this.announce(`부딪혔어요! 체력 −${SubwayGame.RULES.collisionDamage}`, 'damage');
+      }
+    }
+    this.player = { x, y }; this.clearRequestIfInvalid();
+    if (this.hp <= 0) this.finish(false);
+    else {
+      this.syncRequest();
+      if (this.isSeat(y) && !this.request && !occupant) this.announce('착석! 잠깐 숨을 돌리세요.', 'seat');
+    }
+    return true;
+  }
+  updateSeatClaims() {
+    for (const [key, claim] of this.claims) {
+      const n = this.npcs.find(npc => npc.id === claim.npcId);
+      if (!n || n.x !== claim.x || n.y !== claim.frontY || !this.cellFree(claim.x, claim.seatY)) { this.claims.delete(key); continue; }
+      if (this.elapsed >= claim.dueAt) {
+        n.y = claim.seatY; this.claims.delete(key);
+        this.announce('앞에 서 있던 승객이 빈자리를 차지했어요.', 'claim');
+      }
+    }
+    for (const seat of this.seatCells()) {
+      const key = `${seat.x},${seat.y}`;
+      if (!this.cellFree(seat.x, seat.y) || this.claims.has(key)) continue;
+      const frontY = seat.y === 0 ? 1 : 3, n = this.occupied(seat.x, frontY);
+      if (n) this.claims.set(key, { x: seat.x, seatY: seat.y, frontY, npcId: n.id, startsAt: this.elapsed, dueAt: this.elapsed + this.between(.65, 1.4) });
+    }
+  }
+  makeVacancy() {
+    if (this.random() > .78) return;
+    const n = this.pick(this.npcs.filter(npc => this.isSeat(npc.y)));
+    if (!n) return;
+    const seat = { x: n.x, y: n.y }, frontY = n.y === 0 ? 1 : 3;
+    if (this.cellFree(n.x, frontY)) n.y = frontY;
+    else {
+      const options = [{ x: n.x, y: 2 }, { x: n.x - 1, y: frontY }, { x: n.x + 1, y: frontY }].filter(p => p.x >= 0 && p.x < 10 && this.cellFree(p.x, p.y));
+      const destination = this.pick(options);
+      if (destination) { n.x = destination.x; n.y = destination.y; }
+      else this.npcs = this.npcs.filter(npc => npc.id !== n.id);
+    }
+    this.seatTrail.push({ ...seat, until: this.clock + 1.4 });
+    this.announce('빈자리가 생겼어요! 다른 승객보다 먼저 움직이세요.', 'vacancy');
+  }
+  swapNeighbors() {
+    if (this.random() > .6) return;
+    const standing = this.npcs.filter(n => !this.isSeat(n.y) && n.id !== this.request?.npcId);
+    const pairs = [];
+    for (let i = 0; i < standing.length; i++) for (let j = i + 1; j < standing.length; j++) {
+      const a = standing[i], b = standing[j];
+      if (Math.abs(a.x - b.x) + Math.abs(a.y - b.y) === 1) pairs.push([a, b]);
+    }
+    const pair = this.pick(pairs);
+    if (pair) { const [a, b] = pair, p = { x: a.x, y: a.y }; a.x = b.x; a.y = b.y; b.x = p.x; b.y = p.y; }
+  }
+  bringElder() {
+    if (this.request || !this.isSeat(this.player.y) || this.random() > .82) return;
+    const frontY = this.player.y === 0 ? 1 : 3;
+    const occupant = this.occupied(this.player.x, frontY);
+    if (occupant?.elder) { this.syncRequest(); return; }
+    const n = this.pick(this.npcs.filter(npc => npc.elder && !this.isSeat(npc.y))) || this.pick(this.npcs.filter(npc => npc.elder));
+    if (n) {
+      const origin = { x: n.x, y: n.y };
+      n.x = this.player.x; n.y = frontY;
+      if (occupant) { occupant.x = origin.x; occupant.y = origin.y; }
+    } else {
+      if (occupant) occupant.elder = true;
+      else if (this.npcs.length + 1 < 40) this.npcs.push({ id: this.nextId++, x: this.player.x, y: frontY, elder: true });
+    }
+    this.syncRequest();
+  }
+  healthRate() {
+    if (!this.isSeat(this.player.y)) return -SubwayGame.RULES.standingDrain;
+    return this.request ? 0 : SubwayGame.RULES.seatedRecovery;
+  }
+  tick(dt) {
+    if (!Number.isFinite(dt) || dt <= 0 || this.paused || !['boarding', 'riding', 'transfer'].includes(this.phase)) return;
+    let left = dt;
+    while (left > .000001 && ['boarding', 'riding', 'transfer'].includes(this.phase)) {
+      const step = Math.min(left, .05); left -= step; this.step(step);
+    }
+  }
+  step(dt) {
+    this.clock += dt;
+    if (this.phase === 'transfer') {
+      this.transferLeft -= dt;
+      if (this.transferLeft <= 0) this.beginRound(this.roundIndex + 1);
+      return;
+    }
+    this.elapsed += dt;
+    this.clearRequestIfInvalid();
+    const rate = this.healthRate(), before = this.hp;
+    this.hp = Math.max(0, Math.min(100, this.hp + rate * dt));
+    if (rate > 0) { this.stats.seatedSeconds += dt; this.stats.recovered += Math.max(0, this.hp - before); }
+    if (this.hp <= 0) { this.finish(false); return; }
+    // Arrival wins over the elder's deadline: waiting out the final seconds is a valid strategy.
+    if (this.elapsed >= SubwayGame.RULES.roundSeconds) {
+      this.request = null; this.claims.clear();
+      if (this.roundIndex === 2) this.finish(true);
+      else { this.phase = 'transfer'; this.transferLeft = SubwayGame.RULES.transferSeconds; this.announce(`${this.roundIndex + 1}번째 역 도착! 다음 열차 칸으로 이동합니다.`, 'round'); }
+      return;
+    }
+    if (this.phase === 'boarding') {
+      if (this.elapsed >= SubwayGame.RULES.headStart + SubwayGame.RULES.arrivalSeconds) this.settlePassengers();
+      return;
+    }
+    this.syncRequest();
+    if (this.request && this.elapsed >= this.request.deadline) this.yieldSeat(true);
+    if (this.elapsed >= this.nextVacancy) { this.makeVacancy(); this.nextVacancy = this.elapsed + this.between(3.5, 6); }
+    if (this.elapsed >= this.nextSwap) { this.swapNeighbors(); this.nextSwap = this.elapsed + this.between(2.8, 4.8); }
+    if (this.elapsed >= this.nextElder) { this.bringElder(); this.nextElder = this.elapsed + this.between(5.5, 9); }
+    this.syncRequest(); this.updateSeatClaims();
+    this.seatTrail = this.seatTrail.filter(p => p.until > this.clock);
+    if (this.shout && this.shout.until <= this.clock) this.shout = null;
+  }
+  finish(won) {
+    this.phase = won ? 'won' : 'lost'; this.request = null; this.claims.clear();
+    this.announce(won ? '목적지 도착! 민첩한 하루 되세요.' : '체력이 바닥났어요. 잠깐 쉬었다 다시 출발해요.', won ? 'win' : 'lose');
+  }
+  togglePause() {
+    if (!['boarding', 'riding', 'transfer'].includes(this.phase)) return;
+    this.paused = !this.paused;
+  }
+  snapshot() {
+    return { phase: this.phase, paused: this.paused, hp: Math.round(this.hp * 10) / 10, round: this.roundIndex + 1, rounds: 3, secondsLeft: Math.max(0, Math.ceil(30 - this.elapsed)), crowd: this.plan[this.roundIndex]?.label || null, people: this.npcs.length + 1, player: { ...this.player }, npcs: this.npcs.map(n => ({ ...n })), request: this.request ? { ...this.request, secondsLeft: Math.max(0, this.request.deadline - this.elapsed) } : null, lastEvent: this.lastEvent, stats: { ...this.stats } };
+  }
+}
+
+  </script>
+  <script id="game-ui">
+const game = new SubwayGame();
+const $ = id => document.getElementById(id);
+const cells = [], entityNodes = new Map();
+let overlayKey = '', messageKey = '', lastArrivalRound = -1;
+let previousFrame = performance.now();
+const directions = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+const arrowKeys = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+for (let y = 0; y < 5; y++) for (let x = 0; x < 10; x++) {
+  const cell = document.createElement('div');
+  cell.className = `cell${game.isSeat(y) ? ' seat empty' : y === 2 ? ' aisle' : ''}`;
+  cell.dataset.x = x; cell.dataset.y = y; $('grid').append(cell); cells.push(cell);
+}
+function setText(id, text) { const element = $(id); if (element.textContent !== text) element.textContent = text; }
+function startGame() { lastArrivalRound = -1; game.start(); render(); $('board').focus({ preventScroll: true }); }
+function performMove(direction) {
+  const delta = directions[direction]; if (!delta) return false;
+  const moved = game.move(...delta); if (moved) render(); return moved;
+}
+function activeGame() { return ['boarding', 'riding', 'transfer'].includes(game.phase); }
+function renderOverlay() {
+  const phase = game.paused ? 'paused' : game.phase;
+  const key = `${phase}:${game.roundIndex}`;
+  if (key === overlayKey) return; overlayKey = key;
+  const overlay = $('overlay'), button = $('start');
+  overlay.hidden = ['boarding', 'riding'].includes(phase);
+  overlay.className = `overlay${phase === 'transfer' ? ' transfer' : ''}`;
+  $('result-stats').hidden = true; button.hidden = false;
+  if (phase === 'ready') {
+    setText('overlay-kicker', '세 역, 하나의 목표'); setText('overlay-title', '체력을 지켜서 도착하기');
+    $('overlay-text').innerHTML = '빈자리는 기다려주지 않아요.<br>방향키로 움직이고, 앉아서 회복하세요.';
+    button.textContent = '지하철 타기';
+  } else if (phase === 'paused') {
+    setText('overlay-kicker', '잠시 정차'); setText('overlay-title', '잠깐, 숨 고르기');
+    setText('overlay-text', '준비되면 이어서 출발하세요.'); button.textContent = '계속하기';
+    button.focus({ preventScroll: true });
+  } else if (phase === 'transfer') {
+    setText('overlay-kicker', `${game.roundIndex + 1} / 3 역 통과`);
+    setText('overlay-title', `${game.roundIndex + 1}번째 역 도착!`);
+    setText('overlay-text', `다음 구간은 ${game.plan[game.roundIndex + 1].label}입니다. 체력을 이어서 출발해요.`); button.hidden = true;
+  } else if (phase === 'won' || phase === 'lost') {
+    const won = phase === 'won';
+    setText('overlay-kicker', won ? '세 역 모두 통과' : `${game.roundIndex + 1}번째 구간에서 정차`);
+    setText('overlay-title', won ? '민첩한 하루 되세요!' : '잠깐 쉬어가도 괜찮아요');
+    setText('overlay-text', won ? `목적지에 무사히 도착했어요. 남은 체력 ${Math.ceil(game.hp)}!` : '빈자리를 더 빨리 찾으면 다음에는 도착할 수 있어요.');
+    setText('result-stats', `충돌 ${game.stats.collisions}회 · 직접 양보 ${game.stats.yields}회 · 갈! ${game.stats.forcedYields}회`);
+    $('result-stats').hidden = false; button.textContent = '다시 도전하기'; button.focus({ preventScroll: true });
+  }
+}
+function createEntity(key) {
+  const element = document.createElement('div'); element.className = 'entity'; element.dataset.entity = key;
+  const dot = document.createElement('div'); dot.className = 'node'; element.append(dot);
+  $('entities').append(element); entityNodes.set(key, element); return element;
+}
+function renderEntities() {
+  const live = new Set(['player']);
+  for (const n of [...game.npcs, { ...game.player, id: 'player', player: true }]) {
+    const key = n.player ? 'player' : String(n.id); live.add(key);
+    const element = entityNodes.get(key) || createEntity(key);
+    element.className = `entity${n.elder ? ' elder' : ''}${n.player ? ' player' : ''}${n.player && game.flashUntil > game.clock ? ' hit' : ''}`;
+    element.style.left = `${n.x * 10}%`; element.style.top = `${n.y * 20}%`;
+    element.setAttribute('aria-label', `${n.player ? '나' : n.elder ? '노약자' : '승객'}: ${n.x + 1}열 ${n.y + 1}행`);
+    if (n.player && !element.querySelector('.you-label')) {
+      const label = document.createElement('span'); label.className = 'you-label'; label.textContent = '나'; element.append(label);
+    }
+    const requesting = !n.player && game.request?.npcId === n.id;
+    let bubble = element.querySelector('.elder-bubble');
+    if (requesting) {
+      if (!bubble) {
+        bubble = document.createElement('div'); bubble.className = 'elder-bubble';
+        bubble.innerHTML = '<strong>자리 양보하기</strong><div class="elder-track"><div class="elder-fill"></div></div>';
+        element.append(bubble);
+      }
+      bubble.style.left = n.x === 0 ? '5%' : n.x === 9 ? '95%' : '50%';
+      bubble.style.transform = n.x === 0 ? 'none' : n.x === 9 ? 'translateX(-100%)' : 'translateX(-50%)';
+      const progress = Math.max(0, Math.min(100, (game.elapsed - game.request.startedAt) / 3 * 100));
+      bubble.querySelector('.elder-fill').style.width = `${progress}%`;
+      bubble.setAttribute('aria-label', `자리 양보하기. 강제 양보까지 ${Math.max(0, game.request.deadline - game.elapsed).toFixed(1)}초`);
+    } else if (bubble) bubble.remove();
+    const shouting = !n.player && game.shout && game.shout.x === n.x && game.shout.y === n.y && game.shout.until > game.clock;
+    let shout = element.querySelector('.shout');
+    if (shouting && !shout) { shout = document.createElement('div'); shout.className = 'shout'; shout.textContent = '갈!'; element.append(shout); }
+    else if (!shouting && shout) { shout.remove(); shout = null; }
+    if (shouting && shout) {
+      shout.style.bottom = n.y === 0 ? 'auto' : '70%'; shout.style.top = n.y === 0 ? '75%' : 'auto';
+      shout.style.left = n.x === 0 ? '5%' : n.x === 9 ? '95%' : '50%';
+      shout.style.transform = n.x === 0 ? 'rotate(-8deg)' : n.x === 9 ? 'translateX(-100%) rotate(-8deg)' : 'translateX(-50%) rotate(-8deg)';
+    }
+  }
+  for (const [key, element] of entityNodes) if (!live.has(key)) { element.remove(); entityNodes.delete(key); }
+}
+function renderSeats() {
+  let emptyCount = 0;
+  for (const cell of cells) {
+    const x = Number(cell.dataset.x), y = Number(cell.dataset.y);
+    if (!game.isSeat(y)) continue;
+    const empty = game.cellFree(x, y), claim = game.claims.get(`${x},${y}`);
+    if (empty) emptyCount++;
+    cell.classList.toggle('empty', empty); cell.classList.toggle('claiming', empty && !!claim);
+    cell.classList.toggle('new-seat', empty && game.seatTrail.some(p => p.x === x && p.y === y));
+    let track = cell.querySelector('.claim-track');
+    if (empty && claim) {
+      if (!track) { track = document.createElement('div'); track.className = 'claim-track'; track.innerHTML = '<div class="claim-fill"></div>'; cell.append(track); }
+      track.firstElementChild.style.width = `${Math.min(100, (game.elapsed - claim.startsAt) / (claim.dueAt - claim.startsAt) * 100)}%`;
+    } else if (track) track.remove();
+  }
+  setText('seat-count', `빈자리 ${emptyCount}`);
+}
+function showArrivals() {
+  if (game.phase !== 'boarding' || game.elapsed < 1 || lastArrivalRound === game.roundIndex) return;
+  lastArrivalRound = game.roundIndex; $('arrivals').replaceChildren();
+  for (let i = 0; i < 18; i++) {
+    const dot = document.createElement('i'); dot.className = `arrival-dot${i < 2 ? ' elder' : ''}`;
+    dot.style.left = `${i % 2 ? 72 : 22}%`; dot.style.top = '48%';
+    dot.style.setProperty('--dx', `${(i % 9 - 4) * 40}px`); dot.style.setProperty('--dy', `${i % 3 ? -80 : 80}px`);
+    dot.style.animationDelay = `${(i % 5) * .025}s`; $('arrivals').append(dot);
+  }
+}
+function render() {
+  const ready = game.phase === 'ready', won = game.phase === 'won';
+  const round = game.roundIndex + 1, active = activeGame();
+  setText('round', `${String(round).padStart(2, '0')} / 03`);
+  setText('round-caption', ['첫 번째 역까지', '두 번째 역까지', '목적지까지'][game.roundIndex]);
+  setText('crowd', ready ? '운행 대기' : game.plan[game.roundIndex]?.label || '운행 대기');
+  $('crowd').className = `crowd-badge${game.plan[game.roundIndex]?.id === 'packed' ? ' packed' : ''}`;
+  const hp = Math.max(0, Math.ceil(game.hp)); setText('hp', String(hp));
+  $('health-track').setAttribute('aria-valuenow', String(hp)); $('health-fill').style.width = `${game.hp}%`;
+  $('health-fill').style.background = game.hp < 25 ? 'var(--red)' : game.hp < 50 ? 'var(--yellow)' : 'var(--lime)';
+  $('hp').style.color = game.hp < 25 ? '#ff9292' : game.hp < 50 ? 'var(--yellow)' : 'var(--lime)';
+  const rate = game.healthRate();
+  const healthState = ready ? '앉아서 체력을 회복하세요' : game.paused ? '일시정지 중' : game.phase === 'transfer' ? '역 도착 · 잠시 정차 중' : won ? '목적지 도착!' : game.phase === 'lost' ? '체력이 바닥났어요' : game.request ? '양보 대기 · 회복 멈춤' : rate > 0 ? '앉아서 회복 중 +3.8/초' : '서 있는 중 −2.1/초';
+  setText('health-state', healthState); $('health-state').className = `health-state${!ready && rate > 0 ? ' recovering' : ''}${game.request ? ' waiting' : ''}`;
+  setText('seconds', won ? '0' : String(Math.max(0, Math.ceil(30 - game.elapsed))));
+  setText('people', ready ? '—' : String(game.npcs.length + 1));
+  const tripProgress = won ? 3 : game.roundIndex + (game.phase === 'transfer' ? 1 : Math.min(1, game.elapsed / 30));
+  $('route-fill').style.width = `${tripProgress / 3 * 75}%`;
+  document.querySelectorAll('.station').forEach((station, index) => {
+    const arrived = won ? 3 : game.phase === 'transfer' ? game.roundIndex + 1 : game.roundIndex;
+    station.classList.toggle('reached', index <= arrived);
+    station.classList.toggle('current', !won && index === arrived + 1);
+  });
+  let phaseLabel = { ready: 'READY', riding: '운행 중', transfer: '역 도착', won: '도착 완료', lost: '운행 종료' }[game.phase];
+  if (game.phase === 'boarding') phaseLabel = game.elapsed < 1 ? `승객 탑승 ${(1 - game.elapsed).toFixed(1)}초 전` : '우루루 탑승 중';
+  setText('phase-label', game.paused ? '일시정지' : phaseLabel);
+  const event = game.events.at(-1);
+  const nextMessageKey = event ? `${event.at}:${event.text}` : 'ready';
+  if (nextMessageKey !== messageKey) {
+    messageKey = nextMessageKey; setText('message', event?.text || '내가 먼저 탑승! 승객이 들어오기 전 1초를 활용하세요.');
+    $('message').className = `message ${event?.kind || ''}`;
+  }
+  $('pause').disabled = !active;
+  $('pause').setAttribute('aria-label', game.paused ? '계속하기' : '일시정지');
+  $('pause').setAttribute('aria-pressed', String(game.paused));
+  $('pause').querySelector('span').textContent = game.paused ? '계속하기' : '일시정지';
+  $('pause').querySelector('path').setAttribute('d', game.paused ? 'm8 5 10 7-10 7z' : 'M8 5v14M16 5v14');
+  document.querySelectorAll('[data-direction]').forEach(button => { button.disabled = !['boarding', 'riding'].includes(game.phase) || game.paused; });
+  renderSeats(); renderEntities(); showArrivals(); renderOverlay();
+}
+$('start').addEventListener('click', () => {
+  if (game.paused) { game.togglePause(); render(); $('board').focus({ preventScroll: true }); }
+  else startGame();
+});
+$('restart').addEventListener('click', startGame);
+$('pause').addEventListener('click', () => { game.togglePause(); render(); });
+document.querySelectorAll('[data-direction]').forEach(button => {
+  button.addEventListener('click', () => performMove(button.dataset.direction));
+});
+document.addEventListener('keydown', event => {
+  if (event.ctrlKey || event.metaKey || event.altKey || event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+  if (arrowKeys[event.key]) {
+    if (!activeGame()) return;
+    event.preventDefault(); if (!event.repeat) performMove(arrowKeys[event.key]);
+  } else if (event.key === 'Escape' && activeGame() && !event.repeat) {
+    event.preventDefault(); game.togglePause(); render();
+  }
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && activeGame() && !game.paused) { game.togglePause(); render(); }
+  previousFrame = performance.now();
+});
+$('board').tabIndex = 0;
+function frame(now) {
+  const dt = Math.min(.25, Math.max(0, (now - previousFrame) / 1000)); previousFrame = now;
+  game.tick(dt); render(); requestAnimationFrame(frame);
+}
+function registerGameTools() {
+  const context = document.modelContext; if (!context?.registerTool) return;
+  const lifecycle = new AbortController();
+  const register = tool => {
+    try { Promise.resolve(context.registerTool(tool, { signal: lifecycle.signal })).catch(() => {}); } catch { /* Optional browser capability. */ }
+  };
+  register({ name: 'read_subway_game', title: '게임 상태 보기', description: 'Read the current subway game, passenger positions, health, and any active seat-yield request.', inputSchema: { type: 'object', properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, untrustedContentHint: false }, execute(input) { if (!input || Object.keys(input).length) throw new Error('Expected an empty object.'); return game.snapshot(); } });
+  register({ name: 'start_subway_game', title: '새 게임 시작', description: 'Start or restart the visible three-round subway game. This resets health and the current run.', inputSchema: { type: 'object', properties: {}, additionalProperties: false }, annotations: { readOnlyHint: false, untrustedContentHint: false }, execute(input) { if (!input || Object.keys(input).length) throw new Error('Expected an empty object.'); startGame(); return game.snapshot(); } });
+  register({ name: 'move_subway_player', title: '한 칸 이동', description: 'Move the player one grid cell in the running game, exactly as pressing a direction key. Colliding swaps places and costs health; yielding an elder seat costs no health.', inputSchema: { type: 'object', properties: { direction: { type: 'string', enum: ['up', 'down', 'left', 'right'] } }, required: ['direction'], additionalProperties: false }, annotations: { readOnlyHint: false, untrustedContentHint: false }, execute(input) { if (!input || !Object.hasOwn(directions, input.direction) || Object.keys(input).some(key => key !== 'direction')) throw new Error('Expected a valid direction.'); if (!performMove(input.direction)) throw new Error('Move unavailable: game paused, not running, or at the carriage boundary.'); return game.snapshot(); } });
+  window.addEventListener('pagehide', () => lifecycle.abort(), { once: true });
+}
+render(); registerGameTools(); requestAnimationFrame(frame);
+
   </script>
 </body>
 </html>
-
